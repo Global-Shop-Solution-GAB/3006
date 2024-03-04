@@ -1,0 +1,696 @@
+Program.Sub.ScreenSU.Start
+gui.SS_Form1..create
+gui.SS_Form1..caption("GCG_Vnd_Hist_Purchasing_Dollars_Rpt")
+gui.SS_Form1..size(3285,2835)
+gui.SS_Form1..minx(0)
+gui.SS_Form1..miny(0)
+gui.SS_Form1..position(0,0)
+gui.SS_Form1..event(unload,ss_form1_unload)
+gui.SS_Form1..alwaysontop(False)
+gui.SS_Form1..fontname("Arial")
+gui.SS_Form1..fontsize(8)
+gui.SS_Form1..forecolor(0)
+gui.SS_Form1..fontstyle(,,,,)
+gui.SS_Form1..BackColor(-2147483633)
+gui.SS_Form1..controlbox(True)
+gui.SS_Form1..maxbutton(False)
+gui.SS_Form1..minbutton(False)
+gui.SS_Form1..mousepointer(0)
+gui.SS_Form1..moveable(True)
+gui.SS_Form1..sizeable(False)
+gui.SS_Form1..ShowInTaskBar(True)
+gui.SS_Form1..titlebar(True)
+gui.SS_Form1.lbl_dtpAsOf.create(label,"Cut Off Date",True,1800,200,1,200,975,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.lbl_dtpAsOf.defaultvalue("")
+gui.SS_Form1.lbl_dtpAsOf.controlgroup(0)
+gui.SS_Form1.dtpAsOf.create(datepicker)
+gui.SS_Form1.dtpAsOf.visible(True)
+gui.SS_Form1.dtpAsOf.size(1900,345)
+gui.SS_Form1.dtpAsOf.zorder(0)
+gui.SS_Form1.dtpAsOf.position(200,1280)
+gui.SS_Form1.dtpAsOf.enabled(True)
+gui.SS_Form1.dtpAsOf.checkbox(False)
+gui.SS_Form1.dtpAsOf.defaultvalue("")
+gui.SS_Form1.dtpAsOf.controlgroup(0)
+gui.SS_Form1.cmdOk.create(button)
+gui.SS_Form1.cmdOk.caption("Ok")
+gui.SS_Form1.cmdOk.visible(True)
+gui.SS_Form1.cmdOk.size(1000,360)
+gui.SS_Form1.cmdOk.zorder(0)
+gui.SS_Form1.cmdOk.position(185,1785)
+gui.SS_Form1.cmdOk.enabled(True)
+gui.SS_Form1.cmdOk.fontname("Arial")
+gui.SS_Form1.cmdOk.fontsize(8)
+gui.SS_Form1.cmdOk.event(click,cmdok_click)
+gui.SS_Form1.cmdOk.defaultvalue("")
+gui.SS_Form1.cmdOk.controlgroup(0)
+gui.SS_Form1.lblVendor.create(label,"Select a Vendor",True,1935,255,1,200,200,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.lblVendor.defaultvalue("")
+gui.SS_Form1.lblVendor.controlgroup(0)
+gui.SS_Form1.ddlVendor.create(dropdownlist)
+gui.SS_Form1.ddlVendor.visible(True)
+gui.SS_Form1.ddlVendor.size(1900,330)
+gui.SS_Form1.ddlVendor.zorder(0)
+gui.SS_Form1.ddlVendor.position(200,560)
+gui.SS_Form1.ddlVendor.enabled(True)
+gui.SS_Form1.ddlVendor.fontname("Arial")
+gui.SS_Form1.ddlVendor.fontsize(8)
+gui.SS_Form1.ddlVendor.defaultvalue("")
+gui.SS_Form1.ddlVendor.controlgroup(0)
+gui.SS_Form1.dtpAsOf.tabstop(true)
+gui.SS_Form1.dtpAsOf.tabindex(1)
+gui.SS_Form1.cmdOk.tabstop(true)
+gui.SS_Form1.cmdOk.tabindex(2)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Variable.UDT.VNDR.Define("Vendor",String,"Vendor")
+Variable.UDT.VNDR.Define("Name_Vendor",String,"Name_Vendor")
+Variable.UDT.VNDR.Define("Group",String,"Code_Sort")
+Variable.uGlobal.VNDR.Declare("VNDR")
+
+Variable.UDT.AP.Define("Vendor",String,"Vendor")
+Variable.UDT.AP.Define("Date_Invoice",Date,"Date_Invoice")
+Variable.UDT.AP.Define("Amt_Invoice",String,"Amt_Transaction")
+Variable.uGlobal.AP.Declare("AP")
+
+Variable.UDT.RPT.Define("TRMNL",String,"TRMNL")
+Variable.UDT.RPT.Define("Vendor",String,"Vendor")
+Variable.UDT.RPT.Define("Name_Vendor",String,"Name_Vendor")
+Variable.UDT.RPT.Define("Group",String,"Vndr_Group")
+Variable.UDT.RPT.Define("Last_Activity_Date",Date,"Last_Activity_Date")
+Variable.UDT.RPT.Define("Pur_YTD",Float,"Pur_YTD")
+Variable.UDT.RPT.Define("Pur_Prior_Year_1",Float,"Pur_Prior_Year_1")
+Variable.UDT.RPT.Define("Pur_Prior_Year_2",Float,"Pur_Prior_Year_2")
+Variable.UDT.RPT.Define("Pur_Prior_Year_3",Float,"Pur_Prior_Year_3")
+Variable.UDT.RPT.Define("Pur_Prior_Year_4",Float,"Pur_Prior_Year_4")
+Variable.UDT.RPT.Define("TYPE",String,TYPE)
+Variable.uGlobal.RPT.Declare("RPT")
+
+Variable.UDT.VendorType.Define("VENDOR",String,VENDOR)
+Variable.UDT.VendorType.Define("TYPE",String,TYPE)
+Variable.uGlobal.uVendorType.Declare("VendorType")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.svendor.Declare(String)
+V.Local.svendortype.Declare(String)
+V.Local.ssql.Declare(String)
+V.Local.ssql2.Declare(String)
+
+'Coded by: JCT
+'Project Start Date: 05/31/2011
+'Hooks:
+'  Custom on new nemu item
+'Other Components:
+'  GCG_Vnd_Hist_PU_Dol.sql
+'Notes:
+'  for Thermo Kool
+
+'modifications made 10/27/15 by WAW
+'modifications include adding a drop down list to the form to allow the user to run the report based on certain vendors, vendors will be differentiated on the Vendor Add/Update screen
+'script will put a label and textbox on the vendor add/update screen and if the user clicks the save button store the value in GCG_Vendor_Type
+'otherwise if the script isn't being ran from the vendor Add/Update screen it will be running from a custom menu item and display the form.
+'modifications also include error handling
+
+'if the populate hook is fired on the vendor open/new screen, put the hidden label and textbox on the screen
+F.Intrinsic.Control.If(V.Caller.Hook,=,14461)
+
+	'set the passed variables for the label and textbox on the screen
+	V.Passed.GAB-LBL-1.Set("Vendor Type")
+	F.Intrinsic.Variable.SetProperty("GAB-LBL-1","PL",189)
+	F.Intrinsic.Variable.SetProperty("GAB-LBL-1","PT",30)
+	F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-LBL-1,"HIDE",0)
+
+	F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PL",205)
+	F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PT",48)
+	F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PW",20)
+
+	F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-TEXT-1,"HIDE",0)
+	F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-TEXT-1,"LOCK",0)
+
+	'check to see if there is already a vendor type for that vendor, if so put that type in the hidden textbox
+	F.ODBC.Connection!Con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+	V.Local.svendor.Set(V.Passed.000002)
+	F.Intrinsic.String.Build("SELECT VENDOR, TYPE  from GCG_Vendor_Type where VENDOR = '{0}'",V.Local.svendor,V.Local.ssql)
+	F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.ssql)
+	F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+		V.Passed.GAB-TEXT-1.Set(V.ODBC.Con!rst.FieldValTrim!TYPE)
+	F.Intrinsic.Control.EndIf
+	F.ODBC.Connection!Con.Close
+
+'if the save button is selected on the vendor new/open screen
+F.Intrinsic.Control.elseif(V.Caller.Hook,=,14469)
+
+	'set the vendor and vendor type as the values from the vendor and hidden textbox
+	V.Local.svendor.Set(V.Passed.000002.Trim)
+	V.Local.svendortype.Set(V.Passed.GAB-TEXT-1.Trim)
+	'check to see if that vendor/vendor type already exist in the custom table
+	F.ODBC.Connection!Con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+	F.Intrinsic.String.Build("SELECT VENDOR from GCG_Vendor_Type where VENDOR = '{0}'",V.Local.svendor,V.Local.ssql)
+	F.ODBC.Connection!Con.OpenLocalRecordsetRW("rst",V.Local.ssql)
+	'if the vendor/vendor type already exist, just update the table
+	F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+		F.Intrinsic.String.Build("UPDATE GCG_VENDOR_TYPE set TYPE = '{0}' where VENDOR = '{1}'",V.Local.svendortype,V.Local.svendor,V.Local.ssql2)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRW("rst2",V.Local.ssql2)
+	'otherwise if they don't already exists go ahead and insert them into the table
+	F.Intrinsic.Control.Else
+		F.Intrinsic.string.Build("INSERT INTO GCG_VENDOR_TYPE (TYPE, VENDOR) VALUES ('{0}', '{1}')",V.Local.svendortype,V.Local.svendor,V.Local.ssql2)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRW("rst2",V.Local.ssql2)
+	F.Intrinsic.Control.EndIf
+
+	V.Passed.GAB-TEXT-1.Set("")
+	'close connection to the recordset and database
+	F.ODBC.Con!rst.Close
+	F.ODBC.Con!rst2.Close
+	F.ODBC.Connection!Con.Close
+
+F.Intrinsic.Control.Elseif(V.Caller.Hook,<>,14461)
+F.Intrinsic.Control.AndIf(V.Caller.Hook,<>,14469)
+'if the program isn't being ran from the populate or save button it should be running from a custom menu item and can therefore display the form
+
+	'populate the drop down list
+	Gui.SS_Form1.ddlVendor.addItem("Manufacturing")
+	Gui.SS_Form1.ddlVendor.addItem("Temporary")
+	Gui.SS_Form1.ddlVendor.addItem("Other")
+	Gui.SS_Form1.ddlVendor.addItem("All Vendors")
+
+	F.ODBC.Connection!Con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass,3600)
+	'display the custom form
+	Gui.SS_Form1..Show
+'	F.ODBC.Connection!Con.Close
+
+F.Intrinsic.Control.EndIf
+'
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_Vnd_Hist_Purchasing_Dollars_Rpt.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.CollectData.Start
+
+
+
+V.Local.iFor.Declare(Long)
+V.Local.dDate.Declare(Date)
+V.Local.iYear.Declare(Long)
+V.Local.iLastYear.Declare(Long)
+V.Local.sSel.Declare(String)
+V.Local.bExists.Declare(Boolean)
+
+'F.Intrinsic.Date.Year(V.Ambient.Date,V.Local.iYear)
+'F.Intrinsic.Date.DateAdd("YYYY",-4,V.Ambient.Date,V.Local.dDate)
+
+F.Intrinsic.Date.Year(V.Screen.SS_Form1!dtpAsOf.Value,V.Local.iYear)
+F.Intrinsic.Date.DateAdd("YYYY",-4,V.Screen.SS_Form1!dtpAsOf.Value,V.Local.dDate)
+F.Intrinsic.Date.Year(V.Local.dDate,V.Local.iLastYear)
+
+F.Intrinsic.UI.ChangeWaitStatus("Reading Invoice History")
+Function.ODBC.Connection!con.FieldExists("V_AP_OPEN_ITEMS","DATE_INVOICE",V.Local.bExists)
+
+V.uGlobal.AP.Redim(-1,-1)
+
+F.Intrinsic.Control.If(V.Local.bExists,=,True)
+	F.Intrinsic.String.Concat("select VENDOR, DATE_INVOICE, AMT_TRANSACTION from V_AP_OPEN_ITEMS ","",V.Local.sSel)
+	F.Intrinsic.String.Concat(V.Local.sSel,"where BATCH_CODE='10' and year(DATE_INVOICE)>='",V.Local.iLastYear,"' and year(DATE_INVOICE)<='",V.Local.iYear,"' ",V.Local.sSel)
+	F.Intrinsic.String.Concat(V.Local.sSel," order by VENDOR,DATE_INVOICE desc",V.Local.sSel)
+F.Intrinsic.Control.Else
+	F.Intrinsic.String.Concat("select VENDOR,",V.Ambient.DblQuote,"INVOICE DATE",V.Ambient.DblQuote,",AMT_TRANSACTION from V_AP_OPEN_ITEMS ",V.Local.sSel)
+	F.Intrinsic.String.Concat(V.Local.sSel,"where BATCH_CODE='10' and year(",V.Ambient.DblQuote,"INVOICE DATE",V.Ambient.DblQuote,")>='",V.Local.iLastYear,"' and year(",V.Ambient.DblQuote,"INVOICE DATE",V.Ambient.DblQuote,")<='",V.Local.iYear,"' ",V.Local.sSel)
+	F.Intrinsic.String.Concat(V.Local.sSel," order by VENDOR,",V.Ambient.DblQuote,"INVOICE DATE",V.Ambient.DblQuote," desc",V.Local.sSel)
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!Con.OpenRecordsetRO("rstSel",V.Local.sSel)
+	F.Intrinsic.Control.If(V.ODBC.Con!rstSel.EOF,=,False)
+		F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rstSel","v.uGlobal.AP",True,0)
+	F.Intrinsic.Control.EndIf
+F.ODBC.Con!rstSel.Close
+
+F.Intrinsic.String.Concat("select VENDOR,",V.Ambient.DblQuote,"DATE_INVOICE",V.Ambient.DblQuote," as Date_Invoice,AMT_TRANSACTION from V_AP_HIST ",V.Local.sSel)
+F.Intrinsic.String.Concat(V.Local.sSel,"where  year(",V.Ambient.DblQuote,"DATE_INVOICE",V.Ambient.DblQuote,")>='",V.Local.iLastYear,"' and year(",V.Ambient.DblQuote,"DATE_INVOICE",V.Ambient.DblQuote,")<='",V.Local.iYear,"' ",V.Local.sSel)
+F.Intrinsic.String.Concat(V.Local.sSel," order by VENDOR,",V.Ambient.DblQuote,"DATE_INVOICE",V.Ambient.DblQuote," desc",V.Local.sSel)
+F.ODBC.Connection!Con.OpenRecordsetRO("rstSel",V.Local.sSel)
+	F.Intrinsic.Control.If(V.ODBC.Con!rstSel.EOF,=,False)
+F.Intrinsic.Control.If(V.uGlobal.AP!Vendor.UBound,=,-1)
+		F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rstSel","v.uGlobal.AP",True,0)
+F.Intrinsic.Control.Else
+		F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rstSel","v.uGlobal.AP",False,0)
+F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+F.ODBC.Con!rstSel.Close
+
+
+
+Program.Sub.CollectData.End
+
+Program.Sub.PrintReport.Start
+
+
+V.Local.iRptID.Declare(Long)
+V.Local.sReportLoc.Declare(String)
+V.Local.sParams.Declare(String)
+V.Local.sValues.Declare(String)
+V.Local.iYear.Declare(Long)
+V.Local.imonth.Declare(Long)
+
+F.Intrinsic.Date.Year(V.Screen.SS_Form1!dtpAsOf.Value,V.Local.iYear)
+F.Intrinsic.Date.Month(V.Screen.SS_Form1!dtpAsOf.Value,V.Local.imonth)
+
+F.Intrinsic.String.Concat(V.Caller.BusintDir,"\Custom\GCG_Vendor_Analysis_6626.rpt",V.Local.sReportLoc)
+
+'V.Local.sParams.Set("TRMNL")
+F.Intrinsic.String.Split("TRMNL*!*ActivityDate*!*Month","*!*",V.Local.sParams)
+'F.Intrinsic.String.Split("TRMNL*!*ActivityDate*!*Month*!*Type","*!*",V.Local.sParams)
+
+'V.Local.sValues.Set(V.Caller.Terminal)
+F.Intrinsic.String.Concat(V.Caller.Terminal,"*!*",V.Local.iYear,"*!*",V.Local.imonth,V.Local.sValues)
+'F.Intrinsic.String.Concat(V.Caller.Terminal,"*!*",V.Local.iYear,"*!*",V.Local.imonth,"*!*",V.global.stype,V.Local.sValues)
+
+F.Intrinsic.String.Split(V.Local.sValues,"*!*",V.Local.sValues)
+
+F.Intrinsic.UI.CloseWaitDialog
+F.Global.BI.InitializeReport("GCG_Vendor_Analysis_6626",V.Local.sReportLoc,V.Local.iRptID)
+F.Global.BI.PrintReport(V.Local.iRptID,0,V.Local.sParams,V.Local.sValues,"",False)
+
+Program.Sub.PrintReport.End
+
+Program.Sub.SaveData.Start
+
+V.Local.iFor.Declare(Long)
+V.Local.iTY.Declare(Long)
+V.Local.dTY.Declare(Date)
+V.Local.sTY.Declare(String)
+
+V.Local.dYear1.Declare(Date)
+V.Local.iYear1.Declare(Long)
+V.Local.sYear1.Declare(String)
+
+V.Local.dYear2.Declare(Date)
+V.Local.iYear2.Declare(Long)
+V.Local.sYear2.Declare(String)
+
+V.Local.dYear3.Declare(Date)
+V.Local.iYear3.Declare(Long)
+V.Local.sYear3.Declare(String)
+
+V.Local.dYear4.Declare(Date)
+V.Local.iYear4.Declare(Long)
+V.Local.sYear4.Declare(String)
+
+V.Local.ideletecount.Declare(Long)
+V.Local.icount.Declare(Long)
+
+V.Local.sSel.Declare(String)
+V.Local.ssql.Declare(String)
+
+'F.Intrinsic.UI.ChangeWaitStatus("Collating Data")
+'this year
+F.Intrinsic.Date.BeginningOfMonth(V.Screen.SS_Form1!dtpAsOf.Value,V.Local.dTY)
+
+'1 year ago
+F.Intrinsic.Date.DateAdd("YYYY",-1,V.Screen.SS_Form1!dtpAsOf.Value,V.Local.dYear1)
+F.Intrinsic.Date.Year(V.Local.dYear1,V.Local.iYear1)
+F.Intrinsic.String.Concat(V.Local.iYear1,"-01-01",V.Local.sYear1)
+
+'2 years ago
+F.Intrinsic.Date.DateAdd("YYYY",-1,V.Local.dYear1,V.Local.dYear2)
+F.Intrinsic.Date.Year(V.Local.dYear2,V.Local.iYear2)
+F.Intrinsic.String.Concat(V.Local.iYear2,"-01-01",V.Local.sYear2)
+
+'3 years ago
+F.Intrinsic.Date.DateAdd("YYYY",-1,V.Local.dYear2,V.Local.dYear3)
+F.Intrinsic.Date.Year(V.Local.dYear3,V.Local.iYear3)
+F.Intrinsic.String.Concat(V.Local.iYear3,"-01-01",V.Local.sYear3)
+
+'4 years ago
+F.Intrinsic.Date.DateAdd("YYYY",-1,V.Local.dYear3,V.Local.dYear4)
+F.Intrinsic.Date.Year(V.Local.dYear4,V.Local.iYear4)
+F.Intrinsic.String.Concat(V.Local.iYear4,"-01-01",V.Local.sYear4)
+
+F.Intrinsic.Control.For(V.Local.iFor,V.uGlobal.AP!Vendor.LBound,V.uGlobal.AP!Vendor.UBound,1)
+	V.uGlobal.RPT.RedimPreserve(0,V.Local.iFor)
+
+			V.uGlobal.RPT(v.Local.iFor)!TRMNL.Set(V.Caller.Terminal)
+		F.Intrinsic.Control.If(V.uGlobal.AP(v.Local.iFor)!Date_Invoice.PervasiveDate,>=,V.Local.dTY.PervasiveDate)
+			V.uGlobal.RPT(v.Local.iFor)!Vendor.Set(V.uGlobal.AP(v.Local.iFor)!Vendor)
+			V.uGlobal.RPT(v.Local.iFor)!Last_Activity_Date.Set(V.uGlobal.AP(v.Local.iFor)!Date_Invoice)
+			V.uGlobal.RPT(v.Local.iFor)!Pur_YTD.Set(V.uGlobal.AP(v.Local.iFor)!Amt_Invoice)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.uglobal.uVendorType(v.Local.iFor)!TYPE)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.Global.stype)
+
+		F.Intrinsic.Control.elseIf(V.uGlobal.AP(v.Local.iFor)!Date_Invoice.PervasiveDate,>=,V.Local.sYear1)
+			V.uGlobal.RPT(v.Local.iFor)!Vendor.Set(V.uGlobal.AP(v.Local.iFor)!Vendor)
+			V.uGlobal.RPT(v.Local.iFor)!Last_Activity_Date.Set(V.uGlobal.AP(v.Local.iFor)!Date_Invoice)
+			V.uGlobal.RPT(v.Local.iFor)!Pur_Prior_Year_1.Set(V.uGlobal.AP(v.Local.iFor)!Amt_Invoice)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.Global.stype)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.uglobal.uVendorType(v.Local.iFor)!TYPE)
+
+		F.Intrinsic.Control.elseIf(V.uGlobal.AP(v.Local.iFor)!Date_Invoice.PervasiveDate,>=,V.Local.sYear2)
+			V.uGlobal.RPT(v.Local.iFor)!Vendor.Set(V.uGlobal.AP(v.Local.iFor)!Vendor)
+			V.uGlobal.RPT(v.Local.iFor)!Last_Activity_Date.Set(V.uGlobal.AP(v.Local.iFor)!Date_Invoice)
+			V.uGlobal.RPT(v.Local.iFor)!Pur_Prior_Year_2.Set(V.uGlobal.AP(v.Local.iFor)!Amt_Invoice)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.Global.stype)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.uglobal.uVendorType(v.Local.iFor)!TYPE)
+
+		F.Intrinsic.Control.elseIf(V.uGlobal.AP(v.Local.iFor)!Date_Invoice.PervasiveDate,>=,V.Local.sYear3)
+			V.uGlobal.RPT(v.Local.iFor)!Vendor.Set(V.uGlobal.AP(v.Local.iFor)!Vendor)
+			V.uGlobal.RPT(v.Local.iFor)!Last_Activity_Date.Set(V.uGlobal.AP(v.Local.iFor)!Date_Invoice)
+			V.uGlobal.RPT(v.Local.iFor)!Pur_Prior_Year_3.Set(V.uGlobal.AP(v.Local.iFor)!Amt_Invoice)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.Global.stype)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.uglobal.uVendorType(v.Local.iFor)!TYPE)
+
+		F.Intrinsic.Control.elseIf(V.uGlobal.AP(v.Local.iFor)!Date_Invoice.PervasiveDate,>=,V.Local.sYear4)
+			V.uGlobal.RPT(v.Local.iFor)!Vendor.Set(V.uGlobal.AP(v.Local.iFor)!Vendor)
+			V.uGlobal.RPT(v.Local.iFor)!Last_Activity_Date.Set(V.uGlobal.AP(v.Local.iFor)!Date_Invoice)
+			V.uGlobal.RPT(v.Local.iFor)!Pur_Prior_Year_4.Set(V.uGlobal.AP(v.Local.iFor)!Amt_Invoice)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.Global.stype)
+'			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.uglobal.uVendorType(v.Local.iFor)!TYPE)
+
+		F.Intrinsic.Control.EndIf
+
+		F.Intrinsic.Control.If(V.Global.stype,=,"A")
+			F.Intrinsic.String.Build("Select TYPE from GCG_VENDOR_TYPE where VENDOR = '{0}' and TYPE <> '{1}'",V.uGlobal.AP(v.Local.iFor)!Vendor,"",V.Local.ssql)
+			F.ODBC.Connection!Con.OpenRecordsetRO("rst",V.Local.ssql)
+			F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+				V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.ODBC.Con!rst.FieldValTrim!TYPE)
+			F.Intrinsic.Control.EndIf
+			F.ODBC.Con!rst.Close
+		F.Intrinsic.Control.Else
+			V.uGlobal.RPT(v.Local.iFor)!TYPE.Set(V.Global.stype)
+			F.ODBC.Con!rst.Close
+
+		F.Intrinsic.Control.EndIf
+'			
+F.Intrinsic.Control.Next(V.Local.iFor)
+
+F.Intrinsic.Control.For(V.Local.icount,V.uGlobal.RPT.LBound,V.uGlobal.RPT.UBound,1)
+
+	F.Intrinsic.Control.If(V.uGlobal.RPT(v.Local.icount)!Vendor,=,"")
+		f.Intrinsic.Variable.udtflagordinal(v.uGlobal.RPT,true,v.Local.icount)
+'F.Intrinsic.Control.For(v.Local.icount,v.uGlobal.RPT.LBound,v.uGlobal.RPT.UBound,1)
+	F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.next(V.Local.icount)
+
+
+F.Intrinsic.Variable.UDTDeleteFlagged(V.uGlobal.RPT)
+
+'F.Intrinsic.UI.ChangeWaitStatus("Saving Data")
+
+F.Intrinsic.Control.For(V.Local.iFor,V.uGlobal.VNDR!Vendor.LBound,V.uGlobal.VNDR!Vendor.UBound,1)
+	Function.Intrinsic.Variable.UDTMultiSeekSet(V.uGlobal.RPT!Vendor,V.uGlobal.VNDR(v.Local.iFor)!Vendor,V.uGlobal.RPT!Name_Vendor,V.uGlobal.VNDR(v.Local.iFor)!Name_Vendor.Trim)
+	Function.Intrinsic.Variable.UDTMultiSeekSet(V.uGlobal.RPT!Vendor,V.uGlobal.VNDR(v.Local.iFor)!Vendor,V.uGlobal.RPT!Group,V.uGlobal.VNDR(v.Local.iFor)!Group.Trim)
+F.Intrinsic.Control.Next(V.Local.iFor)
+
+F.ODBC.Connection!Con.OpenRecordsetRW("rstRPT","select TRMNL,VENDOR,NAME_VENDOR,VNDR_GROUP,LAST_ACTIVITY_DATE,PUR_YTD,PUR_PRIOR_YEAR_1,PUR_PRIOR_YEAR_2,PUR_PRIOR_YEAR_3,PUR_PRIOR_YEAR_4,TYPE from GCG_VND_HIST_PU_DOL")
+	F.Intrinsic.Variable.SaveUDTToRecordset("Con","rstRPT","V.uGlobal.RPT")
+F.ODBC.Con!rstRPT.Close
+
+'F.Intrinsic.UI.CloseWaitDialog
+
+Program.Sub.SaveData.End
+
+program.sub.ss_form1_unload.start
+
+
+
+F.ODBC.Connection!Con.Close
+F.Intrinsic.Control.End
+
+program.sub.ss_form1_unload.end
+
+program.sub.cmdok_click.start
+F.Intrinsic.Control.SetErrorHandler("cmdok_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.ssql.Declare(String)
+V.Local.ssql2.Declare(String)
+V.Local.i.Declare(Long)
+V.Global.stype.Declare(String)
+
+V.Local.sDelete.Declare(String)
+
+'check to make sure a vendor type was selected
+F.Intrinsic.Control.If(V.screen.SS_Form1!ddlVendor.Text,=,"")
+	F.Intrinsic.UI.Msgbox("Please select a vendor")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+Gui.SS_Form1..Visible(false)
+
+F.Intrinsic.UI.InvokeWaitDialog("Reading Vendor Information")
+
+'if manufacturing is selected get the vendors that are manufacturing
+F.Intrinsic.Control.If(V.Screen.SS_Form1!ddlVendor.Text,=,"Manufacturing")
+	V.Global.stype.Set("M")
+	'select the vendor where equal to M
+	F.Intrinsic.String.Build("Select * from GCG_VENDOR_TYPE where TYPE = '{0}'","M",V.Local.ssql)
+	F.ODBC.Connection!Con.OpenRecordsetRO("rst",V.Local.ssql)
+	F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+		'load the UDT
+		F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rst","v.uglobal.uVendorType",False,0)
+
+		F.Intrinsic.String.Concat("delete from GCG_VND_HIST_PU_DOL where TRMNL='",V.Caller.Terminal,"'",V.Local.sDelete)
+		F.ODBC.Connection!Con.Execute(V.Local.sDelete)
+		V.uGlobal.VNDR.Redim(-1,-1)
+	
+		'loop through the vendortype udt and select vendors based on the vendors that were found
+		F.Intrinsic.Control.For(V.Local.i,V.uGlobal.uVendorType.LBound,V.uGlobal.uVendorType.UBound,1)
+			F.intrinsic.String.Build("Select VENDOR, NAME_VENDOR, CODE_SORT from V_VENDOR_MASTER where VENDOR = '{0}'",V.uGlobal.uVendorType(v.Local.i)!VENDOR,V.Local.ssql2)
+			F.ODBC.Connection!Con.OpenRecordsetRO("rst2",V.Local.ssql2)
+			F.Intrinsic.Control.If(V.ODBC.Con!rst2.EOF,=,False)
+			F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rst2","v.uglobal.VNDR",True,10000)
+			F.Intrinsic.Control.EndIf
+			F.ODBC.Con!rst2.Close
+
+		F.Intrinsic.Control.Next(V.Local.i)
+
+	F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ElseIf(V.Screen.SS_Form1!ddlVendor.Text,=,"Temporary")
+	V.Global.stype.Set("T")
+
+	'select the vendor where equal to T
+	F.Intrinsic.String.Build("Select * from GCG_VENDOR_TYPE where TYPE = '{0}'","T",V.Local.ssql)
+	F.ODBC.Connection!Con.OpenRecordsetRO("rst",V.Local.ssql)
+	F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+		'load the UDT
+		F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rst","v.uglobal.uVendorType",False,0)
+
+		F.Intrinsic.String.Concat("delete from GCG_VND_HIST_PU_DOL where TRMNL='",V.Caller.Terminal,"'",V.Local.sDelete)
+		F.ODBC.Connection!Con.Execute(V.Local.sDelete)
+		V.uGlobal.VNDR.Redim(-1,-1)
+	
+		'loop through the vendortype udt and select vendors based on the vendors that were found
+		F.Intrinsic.Control.For(V.Local.i,V.uGlobal.uVendorType.LBound,V.uGlobal.uVendorType.UBound,1)
+'	F.Intrinsic.Variable.SetUDTFieldReference(V.uGlobal.VNDR!TYPE,"TYPE")
+			F.intrinsic.String.Build("Select VENDOR, NAME_VENDOR, CODE_SORT from V_VENDOR_MASTER where VENDOR = '{0}'",V.uGlobal.uVendorType(v.Local.i)!VENDOR,V.Local.ssql2)
+			F.ODBC.Connection!Con.OpenRecordsetRO("rst2",V.Local.ssql2)
+			F.Intrinsic.Control.If(V.ODBC.Con!rst2.EOF,=,False)
+				F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rst2","v.uglobal.VNDR",True,10000)
+			F.Intrinsic.Control.EndIf
+			F.ODBC.Con!rst2.Close
+		
+		F.Intrinsic.Control.Next(V.Local.i)
+
+	F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ElseIf(V.Screen.SS_Form1!ddlVendor.Text,=,"Other")
+	V.Global.stype.Set("O")
+
+	'select the vendor where equal to O
+	F.Intrinsic.String.Build("Select * from GCG_VENDOR_TYPE where TYPE = '{0}'","O",V.Local.ssql)
+	F.ODBC.Connection!Con.OpenRecordsetRO("rst",V.Local.ssql)
+	F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+		'load the UDT
+		F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rst","v.uglobal.uVendorType",False,0)
+
+
+		F.Intrinsic.String.Concat("delete from GCG_VND_HIST_PU_DOL where TRMNL='",V.Caller.Terminal,"'",V.Local.sDelete)
+		F.ODBC.Connection!Con.Execute(V.Local.sDelete)
+		V.uGlobal.VNDR.Redim(-1,-1)
+	
+		'loop through the vendortype udt and select vendors based on the vendors that were found
+		F.Intrinsic.Control.For(V.Local.i,V.uGlobal.uVendorType.LBound,V.uGlobal.uVendorType.UBound,1)
+			F.intrinsic.String.Build("Select VENDOR, NAME_VENDOR, CODE_SORT from V_VENDOR_MASTER where VENDOR = '{0}'",V.uGlobal.uVendorType(v.Local.i)!VENDOR,V.Local.ssql2)
+			F.ODBC.Connection!Con.OpenRecordsetRO("rst2",V.Local.ssql2)
+			F.Intrinsic.Control.If(V.ODBC.Con!rst2.EOF,=,False)
+			F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rst2","v.uglobal.VNDR",True,0)
+			F.Intrinsic.Control.EndIf
+			F.ODBC.Con!rst2.Close
+'			F.Intrinsic.Variable.SetUDTFieldReference(V.uGlobal.VNDR!TYPE,"TYPE")
+'			V.uGlobal.VNDR!TYPE.Set(V.uGlobal.uVendorType(v.Local.i)!TYPE)
+		F.Intrinsic.Control.Next(V.Local.i)
+
+	F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ElseIf(V.Screen.SS_Form1!ddlVendor.Text,=,"All Vendors")
+	V.Global.stype.Set("A")
+
+	F.Intrinsic.String.Concat("delete from GCG_VND_HIST_PU_DOL where TRMNL='",V.Caller.Terminal,"'",V.Local.sDelete)
+	F.ODBC.Connection!Con.Execute(V.Local.sDelete)
+
+	V.uGlobal.VNDR.Redim(-1,-1)
+	F.ODBC.Connection!Con.OpenRecordsetRO("rstVndr","select VENDOR,NAME_VENDOR,CODE_SORT from V_VENDOR_MASTER order by VENDOR")
+		F.Intrinsic.Control.If(V.ODBC.Con!rstVndr.EOF,=,False)
+			F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rstVndr","V.uGlobal.VNDR",False,0)
+		F.Intrinsic.Control.EndIf
+	F.ODBC.Con!rstVndr.Close
+
+F.Intrinsic.Control.EndIf
+
+'F.Intrinsic.Control.CallSub(Collectdata)
+'F.Intrinsic.Control.CallSub(Savedata)
+F.Intrinsic.Control.CallSub(Ap_open)
+F.Intrinsic.Control.CallSub(Ap_hist)
+F.Intrinsic.Control.CallSub(Printreport)
+F.Intrinsic.Control.CallSub(Ss_form1_unload)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdok_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_Vnd_Hist_Purchasing_Dollars_Rpt.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+
+program.sub.cmdok_click.end
+
+Program.Sub.AP_Open.Start
+F.Intrinsic.Control.SetErrorHandler("AP_Open_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.iFor.Declare(Long)
+V.Local.dDate.Declare(Date)
+V.Local.iYear.Declare(Long)
+V.Local.iLastYear.Declare(Long)
+V.Local.sSel.Declare(String)
+V.Local.bExists.Declare(Boolean)
+V.Local.i.Declare(Long)
+
+F.Intrinsic.Date.Year(V.Screen.SS_Form1!dtpAsOf.Value,V.Local.iYear)
+F.Intrinsic.Date.DateAdd("YYYY",-4,V.Screen.SS_Form1!dtpAsOf.Value,V.Local.dDate)
+F.Intrinsic.Date.Year(V.Local.dDate,V.Local.iLastYear)
+
+F.Intrinsic.UI.ChangeWaitStatus("Reading Invoice Open Items")
+Function.ODBC.Connection!con.FieldExists("V_AP_OPEN_ITEMS","DATE_INVOICE",V.Local.bExists)
+
+V.uGlobal.AP.Redim(-1,-1)
+
+F.Intrinsic.Control.If(V.Local.bExists,=,True)
+	F.Intrinsic.Control.For(V.Local.i,V.uGlobal.VNDR.LBound,V.uGlobal.VNDR.UBound,1)
+
+		'F.Intrinsic.String.Concat("SELECT VENDOR, DATE_INVOICE, AMT_TRANSACTION FROM V_AP_OPEN_ITEMS",V.Local.sSel)
+		F.Intrinsic.String.Build("SELECT VENDOR, DATE_INVOICE, AMT_TRANSACTION FROM V_AP_OPEN_ITEMS WHERE BATCH_CODE= '{0}' AND YEAR(DATE_INVOICE) <= '{1}' and VENDOR = '{2}' ORDER BY VENDOR, DATE_INVOICE DESC",10,V.local.iyear,V.uglobal.VNDR(v.local.i)!Vendor,V.local.ssel)
+	
+'		V.Local.sSel.Set("SELECT VENDOR, DATE_INVOICE, AMT_TRANSACTION FROM V_AP_OPEN_ITEMS")
+'		F.Intrinsic.String.Concat(V.Local.sSel," WHERE BATCH_CODE='10' AND YEAR(DATE_INVOICE) >= ",V.Local.iLastYear," AND YEAR(DATE_INVOICE) <= ",V.Local.iYear,V.Local.sSel)
+'		F.Intrinsic.String.Concat(V.Local.sSel," ORDER BY VENDOR, DATE_INVOICE DESC",V.Local.sSel)
+
+		'F.Intrinsic.Control.Else
+		'F.Intrinsic.String.Concat("SELECT VENDOR, DATE_INVOICE, AMT_TRANSACTION FROM V_AP_OPEN_ITEMS",V.Local.sSel)
+		'F.Intrinsic.String.Concat(V.Local.sSel,"where BATCH_CODE='10' and year(",V.Ambient.DblQuote,"INVOICE DATE",V.Ambient.DblQuote,")>='",V.Local.iLastYear,"' and year(",V.Ambient.DblQuote,"DATE_INVOICE",V.Ambient.DblQuote,")<='",V.Local.iYear,"' ",V.Local.sSel)
+		'F.Intrinsic.String.Concat(V.Local.sSel," order by VENDOR,",V.Ambient.DblQuote,"INVOICE DATE",V.Ambient.DblQuote," desc",V.Local.sSel)
+
+	F.ODBC.Connection!Con.OpenRecordsetRO("rstSel",V.Local.sSel)
+	F.Intrinsic.Control.If(V.ODBC.Con!rstSel.EOF,=,False)
+		F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rstSel","v.uGlobal.AP",True,1000)
+	F.Intrinsic.Control.EndIf
+	F.ODBC.Con!rstSel.Close
+		F.Intrinsic.control.next(V.Local.i)
+F.Intrinsic.Control.EndIf
+'F.ODBC.Connection!Con.OpenRecordsetRO("rstSel",V.Local.sSel)
+'	F.Intrinsic.Control.If(V.ODBC.Con!rstSel.EOF,=,False)
+'		F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rstSel","v.uGlobal.AP",True,0)
+'	F.Intrinsic.Control.EndIf
+'F.ODBC.Con!rstSel.Close
+
+F.Intrinsic.UI.ChangeWaitStatus("Saving Open Item Data")
+F.Intrinsic.Control.If(V.uGlobal.AP!Vendor.UBound,<>,-1)
+	F.Intrinsic.Control.CallSub(Savedata)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("AP_Open_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_Vnd_Hist_Purchasing_Dollars_Rpt.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.AP_Open.End
+
+Program.Sub.AP_Hist.Start
+
+V.Local.iFor.Declare(Long)
+V.Local.dDate.Declare(Date)
+V.Local.iYear.Declare(Long)
+V.Local.iLastYear.Declare(Long)
+V.Local.sSel.Declare(String)
+V.Local.bExists.Declare(Boolean)
+V.Local.i.declare(Long)
+
+F.Intrinsic.Date.Year(V.Screen.SS_Form1!dtpAsOf.Value,V.Local.iYear)
+F.Intrinsic.Date.DateAdd("YYYY",-4,V.Screen.SS_Form1!dtpAsOf.Value,V.Local.dDate)
+F.Intrinsic.Date.Year(V.Local.dDate,V.Local.iLastYear)
+
+F.Intrinsic.UI.ChangeWaitStatus("Reading Invoice History")
+
+V.uGlobal.AP.Redim(-1,-1)
+
+F.Intrinsic.Control.For(V.Local.i,V.uGlobal.VNDR.LBound,V.uGlobal.VNDR.UBound,1)
+'	F.Intrinsic.Control.If(V.uGlobal.VNDR(v.Local.i)!Vendor,=,"")
+'		F.Intrinsic.Control.Next(V.Local.i)
+'	F.Intrinsic.Control.EndIf
+
+	'F.Intrinsic.String.Concat("select VENDOR, DATE_INVOICE, AMT_TRANSACTION from V_AP_HIST",V.Local.sSel)
+	F.Intrinsic.String.Build("SELECT VENDOR, DATE_INVOICE, AMT_TRANSACTION FROM V_AP_HIST WHERE  YEAR(DATE_INVOICE) >= '{0}'  AND YEAR(DATE_INVOICE) <= '{1}'  and VENDOR = '{2}' ORDER BY VENDOR, DATE_INVOICE DESC",V.Local.iLastYear,V.Local.iYear,V.uGlobal.VNDR(v.Local.i)!Vendor,V.Local.sSel)
+
+'	V.Local.sSel.Set("SELECT VENDOR, DATE_INVOICE, AMT_TRANSACTION FROM V_AP_HIST")
+'	F.Intrinsic.String.Concat(V.Local.sSel," WHERE  YEAR(DATE_INVOICE) >=",V.Local.iLastYear," AND YEAR(DATE_INVOICE) <= ",V.Local.iYear,V.Local.sSel)
+'	F.Intrinsic.String.Concat(V.Local.sSel," ORDER BY VENDOR, DATE_INVOICE DESC",V.Local.sSel)
+	F.ODBC.Connection!Con.OpenRecordsetRO("rstSel",V.Local.sSel)
+		F.Intrinsic.Control.If(V.ODBC.Con!rstSel.EOF,=,False)
+			F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rstSel","v.uGlobal.AP",True,1000)
+		F.Intrinsic.Control.EndIf
+	F.ODBC.Con!rstSel.Close
+
+F.Intrinsic.Control.Next(V.Local.i)
+
+F.Intrinsic.UI.ChangeWaitStatus("Saving History Data")
+F.Intrinsic.Control.If(V.uGlobal.AP!Vendor.UBound,<>,-1)
+	F.Intrinsic.Control.CallSub(Savedata)
+F.Intrinsic.Control.EndIf
+
+
+
+
+Program.Sub.AP_Hist.End
+
+Program.Sub.ScreenSS.Start
+SS_Form1{{CAPTION::GCG_Vnd_Hist_Purchasing_Dollars_Rpt
+SS_Form1.CTRL{{NAME::dtpAsOf\\TYPE::6\\CAPTION::Cut Off Date\\TABSTOP::1\\GROUP::-1\\BROWSER::0
+SS_Form1.CTRL{{NAME::cmdOk\\TYPE::5\\CAPTION::Ok\\TABSTOP::2\\GROUP::-1\\BROWSER::0
+
+Program.Sub.ScreenSS.End
+
